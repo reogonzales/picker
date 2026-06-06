@@ -114,7 +114,7 @@ export default function App() {
         </button>
       </header>
 
-      <main className="px-6 py-6 max-w-7xl mx-auto">
+      <main className="px-6 py-6">
         <WatchlistTable
           rows={rows}
           tickers={tickers}
