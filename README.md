@@ -2,7 +2,9 @@
 
 A personal web app for evaluating stocks and ETFs side-by-side. Enter tickers manually or import a CSV, and get a scored watchlist with fundamental, technical, and ETF-specific metrics.
 
-![Picker screenshot](https://github.com/reogonzales/picker/assets/picker-screenshot.png)
+![Watchlist view](docs/screenshot.png)
+
+![Expanded ETF detail](docs/screenshot-expanded.png)
 
 ## Features
 
