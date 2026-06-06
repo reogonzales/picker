@@ -37,6 +37,8 @@ export interface TechnicalData {
   price_vs_sma200: number | null;
   rsi: number | null;
   macd: MacdData | null;
+  mfi: number | null;
+  short_pct: number | null;
   week52_pct: number | null;
   beta: number | null;
   avg_volume_20d: number | null;

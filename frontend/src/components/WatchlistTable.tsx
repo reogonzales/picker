@@ -221,7 +221,7 @@ function ExpandedRow({ row }: { row: TickerAnalysis }) {
 }
 
 type SortKey =
-  | "ticker" | "price" | "score" | "pe" | "rev_grw" | "rsi" | "week52"
+  | "ticker" | "price" | "score" | "pe" | "rev_grw" | "rsi" | "mfi" | "short_pct" | "week52"
   | "margin" | "de" | "exp_ratio" | "analyst" | "analyst_count" | "target";
 
 function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): number | string | null {
@@ -233,6 +233,8 @@ function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): numbe
     case "pe":           return row.fundamental.pe_trailing ?? null;
     case "rev_grw":      return row.fundamental.revenue_growth_pct ?? null;
     case "rsi":          return row.technical.rsi ?? null;
+    case "mfi":          return row.technical.mfi ?? null;
+    case "short_pct":    return row.technical.short_pct ?? null;
     case "week52":       return row.technical.week52_pct ?? null;
     case "margin":       return row.fundamental.profit_margin_pct ?? null;
     case "de":           return row.fundamental.debt_to_equity ?? null;
@@ -302,9 +304,10 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     );
   }
 
-  const totalCols = 12 + (hasEtf ? 1 : 0);
+  const totalCols = 14 + (hasEtf ? 1 : 0);
 
   return (
+    <>
     <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
       <table className="w-full text-sm">
         <thead>
@@ -316,6 +319,8 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
             <Th label="P/E" colKey="pe" />
             <Th label="Rev Grw" colKey="rev_grw" />
             <Th label="RSI" colKey="rsi" />
+            <Th label="MFI" colKey="mfi" />
+            <Th label="Short %" colKey="short_pct" />
             <Th label="52wk%" colKey="week52" />
             <Th label="Margin" colKey="margin" />
             <Th label="D/E" colKey="de" />
@@ -370,6 +375,12 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
                   </td>
                   <td className="px-4 py-3 text-right font-mono">
                     <MetricCell value={row?.technical.rsi} format="num" />
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    <MetricCell value={row?.technical.mfi} format="num" />
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    <MetricCell value={row?.technical.short_pct} format="num" suffix="%" />
                   </td>
                   <td className="px-4 py-3 text-right font-mono">
                     <MetricCell value={row?.technical.week52_pct} format="num" suffix="%" />
@@ -433,5 +444,13 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
         </tbody>
       </table>
     </div>
+    <p className="mt-2 text-xs text-slate-400">
+      * <strong>Score</strong> = {hasEtf
+        ? "stocks: 55% Fundamental + 45% Technical · ETFs: 40% Fundamental + 35% Technical + 25% ETF-specific"
+        : "55% Fundamental + 45% Technical"
+      } · BUY ≥ 65 · HOLD 40–64 · AVOID &lt; 40 ·{" "}
+      <strong>MFI</strong> = 14-day Money Flow Index (volume-weighted RSI; &gt;80 overbought, &lt;20 oversold)
+    </p>
+    </>
   );
 }

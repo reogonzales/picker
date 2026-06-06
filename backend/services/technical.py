@@ -17,6 +17,22 @@ def _rsi_from_prices(closes: pd.Series, period: int = 14) -> Optional[float]:
     return round(float(val), 2) if val is not None else None
 
 
+def _mfi_from_hist(hist: pd.DataFrame, period: int = 14) -> Optional[float]:
+    needed = {"High", "Low", "Close", "Volume"}
+    if not needed.issubset(hist.columns) or len(hist) < period + 1:
+        return None
+    tp = (hist["High"] + hist["Low"] + hist["Close"]) / 3
+    rmf = tp * hist["Volume"]
+    pos = rmf.where(tp > tp.shift(1), 0.0)
+    neg = rmf.where(tp < tp.shift(1), 0.0)
+    pos_sum = pos.rolling(period).sum()
+    neg_sum = neg.rolling(period).sum()
+    mfr = pos_sum / neg_sum.replace(0, float("nan"))
+    mfi = 100 - (100 / (1 + mfr))
+    val = mfi.dropna().iloc[-1] if not mfi.dropna().empty else None
+    return round(float(val), 1) if val is not None else None
+
+
 def _macd_from_prices(closes: pd.Series) -> Optional[dict]:
     if len(closes) < 35:
         return None
@@ -40,6 +56,7 @@ def compute(ticker: str) -> dict[str, Any]:
     sma50 = sma200 = None
     rsi = None
     macd = None
+    mfi = None
     week52_pct = None
     beta = None
     avg_vol = None
@@ -56,6 +73,7 @@ def compute(ticker: str) -> dict[str, Any]:
 
         rsi = _rsi_from_prices(closes)
         macd = _macd_from_prices(closes)
+        mfi = _mfi_from_hist(hist)
 
         if len(closes) >= 252:
             low52 = float(closes.tail(252).min())
@@ -82,6 +100,9 @@ def compute(ticker: str) -> dict[str, Any]:
 
     beta = round(float(info.get("beta", 0) or 0), 2) if info.get("beta") else None
 
+    raw_short = info.get("shortPercentOfFloat")
+    short_pct = round(float(raw_short) * 100, 1) if raw_short is not None else None
+
     return {
         "current_price": current_price,
         "sma50": sma50,
@@ -96,6 +117,8 @@ def compute(ticker: str) -> dict[str, Any]:
         ),
         "rsi": rsi,
         "macd": macd,
+        "mfi": mfi,
+        "short_pct": short_pct,
         "week52_pct": week52_pct,
         "beta": beta,
         "avg_volume_20d": avg_vol,
