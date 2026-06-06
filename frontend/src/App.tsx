@@ -26,6 +26,7 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [font, setFont] = useState<string>(() => localStorage.getItem("picker-font") ?? "system");
+  const [fontSize, setFontSize] = useState<string>(() => localStorage.getItem("picker-font-size") ?? "70");
   const abortRefs = useRef<Record<string, AbortController>>({});
 
   const showToast = (msg: string) => setToast(msg);
@@ -104,8 +105,13 @@ export default function App() {
     localStorage.setItem("picker-font", f);
   };
 
+  const handleFontSizeChange = (s: string) => {
+    setFontSize(s);
+    localStorage.setItem("picker-font-size", s);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50" style={{ fontFamily: FONTS[font] ?? FONTS.system }}>
+    <div className="min-h-screen bg-slate-50" style={{ fontFamily: FONTS[font] ?? FONTS.system, fontSize: `${fontSize}%` }}>
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4 flex-wrap">
         <div className="flex flex-col leading-tight mr-1">
           <h1 className="text-xl font-bold text-slate-800 tracking-tight">Picker</h1>
@@ -123,12 +129,25 @@ export default function App() {
           value={font}
           onChange={(e) => handleFontChange(e.target.value)}
           className="ml-auto rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-600 bg-white hover:bg-slate-50 focus:outline-none"
-          title="Font"
+          title="Font family"
         >
           <option value="system">System font</option>
           <option value="inter">Inter</option>
           <option value="lato">Lato</option>
           <option value="mono">Monospace</option>
+        </select>
+        <select
+          value={fontSize}
+          onChange={(e) => handleFontSizeChange(e.target.value)}
+          className="rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-600 bg-white hover:bg-slate-50 focus:outline-none"
+          title="Font size"
+        >
+          <option value="55">55%</option>
+          <option value="65">65%</option>
+          <option value="70">70%</option>
+          <option value="80">80%</option>
+          <option value="90">90%</option>
+          <option value="100">100%</option>
         </select>
         <button
           onClick={handleRefreshAll}
