@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { MouseEvent } from "react";
 import type { TickerAnalysis } from "../api/client";
 import ScoreBadge from "./ScoreBadge";
 import MetricCell from "./MetricCell";
@@ -250,7 +251,14 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const hasEtf = rows.some((r) => r?.etf != null);
+
+  const showTooltip = (e: MouseEvent, text: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setTooltip({ text, x: rect.left, y: rect.bottom + 6 });
+  };
+  const hideTooltip = () => setTooltip(null);
 
   const toggle = (ticker: string) => {
     setExpanded((prev) => {
@@ -288,7 +296,8 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
       <th
         className={`px-4 py-2 text-${align} cursor-pointer select-none group whitespace-nowrap`}
         onClick={() => handleSort(colKey)}
-        title={title}
+        onMouseEnter={title ? (e) => showTooltip(e, title) : undefined}
+        onMouseLeave={title ? hideTooltip : undefined}
       >
         <span className={active ? "text-slate-700" : ""}>{label}</span>
         <span className={`ml-1 ${active ? "text-slate-600" : "text-slate-300 group-hover:text-slate-400"}`}>
@@ -468,6 +477,16 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
         </tbody>
       </table>
     </div>
+    {tooltip && (
+      <div
+        className="fixed z-50 max-w-xs rounded-lg bg-slate-800 text-white text-xs px-3 py-2 shadow-xl pointer-events-none leading-relaxed"
+        style={{ left: tooltip.x, top: tooltip.y }}
+      >
+        {tooltip.text.split("\n").map((line, i) => (
+          <div key={i} className={i > 0 ? "mt-1" : ""}>{line}</div>
+        ))}
+      </div>
+    )}
     <p className="mt-2 text-xs text-slate-400">
       * <strong>Score</strong> = {hasEtf
         ? "stocks: 55% Fundamental + 45% Technical · ETFs: 40% Fundamental + 35% Technical + 25% ETF-specific"
