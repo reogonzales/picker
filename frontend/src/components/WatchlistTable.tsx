@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { MouseEvent } from "react";
 import type { TickerAnalysis } from "../api/client";
 import ScoreBadge from "./ScoreBadge";
@@ -225,6 +225,15 @@ type SortKey =
   | "ticker" | "price" | "market_cap" | "score" | "pe" | "rev_grw" | "rsi" | "mfi" | "short_pct" | "week52"
   | "margin" | "de" | "exp_ratio" | "analyst" | "analyst_count" | "target";
 
+type ColKey = SortKey | "expand" | "actions";
+
+const DEFAULT_WIDTHS: Record<ColKey, number> = {
+  expand: 28, ticker: 150, price: 88, market_cap: 88, score: 98,
+  pe: 60, rev_grw: 72, rsi: 52, mfi: 52, short_pct: 68, week52: 68,
+  margin: 68, de: 56, exp_ratio: 80, analyst: 88, analyst_count: 58,
+  target: 62, actions: 64,
+};
+
 function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): number | string | null {
   if (key === "ticker") return ticker;
   if (!row) return null;
@@ -252,7 +261,33 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
+  const [colWidths, setColWidths] = useState<Record<ColKey, number>>({ ...DEFAULT_WIDTHS });
+  const resizingRef = useRef<{ colKey: ColKey; startX: number; startWidth: number } | null>(null);
   const hasEtf = rows.some((r) => r?.etf != null);
+
+  const startResize = useCallback((colKey: ColKey, e: MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const th = (e.currentTarget as HTMLElement).parentElement as HTMLElement;
+    resizingRef.current = { colKey, startX: e.clientX, startWidth: th.offsetWidth };
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const onMove = (ev: globalThis.MouseEvent) => {
+      if (!resizingRef.current) return;
+      const newWidth = Math.max(40, resizingRef.current.startWidth + ev.clientX - resizingRef.current.startX);
+      setColWidths((prev) => ({ ...prev, [resizingRef.current!.colKey]: newWidth }));
+    };
+    const onUp = () => {
+      resizingRef.current = null;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, []);
 
   const showTooltip = (e: MouseEvent, text: string) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -294,7 +329,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     const active = sortKey === colKey;
     return (
       <th
-        className={`px-4 py-2 text-${align} cursor-pointer select-none group whitespace-nowrap`}
+        className={`relative px-4 py-2 text-${align} cursor-pointer select-none group whitespace-nowrap overflow-hidden`}
         onClick={() => handleSort(colKey)}
         onMouseEnter={title ? (e) => showTooltip(e, title) : undefined}
         onMouseLeave={title ? hideTooltip : undefined}
@@ -303,6 +338,10 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
         <span className={`ml-1 ${active ? "text-slate-600" : "text-slate-300 group-hover:text-slate-400"}`}>
           {active ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
         </span>
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
+          onMouseDown={(e) => startResize(colKey, e)}
+        />
       </th>
     );
   };
@@ -320,10 +359,35 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
   return (
     <>
     <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
-      <table className="w-full text-sm">
+      <table className="table-fixed text-sm">
+        <colgroup>
+          <col style={{ width: colWidths.expand }} />
+          <col style={{ width: colWidths.ticker }} />
+          <col style={{ width: colWidths.price }} />
+          <col style={{ width: colWidths.market_cap }} />
+          <col style={{ width: colWidths.score }} />
+          <col style={{ width: colWidths.pe }} />
+          <col style={{ width: colWidths.rev_grw }} />
+          <col style={{ width: colWidths.rsi }} />
+          <col style={{ width: colWidths.mfi }} />
+          <col style={{ width: colWidths.short_pct }} />
+          <col style={{ width: colWidths.week52 }} />
+          <col style={{ width: colWidths.margin }} />
+          <col style={{ width: colWidths.de }} />
+          {hasEtf && <col style={{ width: colWidths.exp_ratio }} />}
+          <col style={{ width: colWidths.analyst }} />
+          <col style={{ width: colWidths.analyst_count }} />
+          <col style={{ width: colWidths.target }} />
+          <col style={{ width: colWidths.actions }} />
+        </colgroup>
         <thead>
           <tr className="bg-slate-100 text-slate-500 text-xs uppercase tracking-wide">
-            <th className="px-4 py-2 text-left w-8"></th>
+            <th className="relative px-2 py-2 text-left group">
+              <div
+                className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                onMouseDown={(e) => startResize("expand", e)}
+              />
+            </th>
             <Th label="Ticker" colKey="ticker" align="left"
               title="Stock or ETF ticker symbol" />
             <Th label="Last Close" colKey="price"
@@ -356,7 +420,12 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
               title="Number of analysts covering this ticker.&#10;Higher count = more reliable consensus." />
             <Th label="Target" colKey="target"
               title="% upside to analysts' mean price target.&#10;Formula: (mean target / current price − 1) × 100&#10;Display only — does not feed the composite score." />
-            <th className="px-4 py-2 text-right w-20">Actions</th>
+            <th className="relative px-4 py-2 text-right group">Actions
+              <div
+                className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                onMouseDown={(e) => startResize("actions", e)}
+              />
+            </th>
           </tr>
         </thead>
         <tbody>
