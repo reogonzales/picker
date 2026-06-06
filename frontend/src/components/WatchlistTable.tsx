@@ -280,13 +280,14 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
   });
 
   const Th = ({
-    label, colKey, align = "right",
-  }: { label: string; colKey: SortKey; align?: "left" | "right" }) => {
+    label, colKey, align = "right", title,
+  }: { label: string; colKey: SortKey; align?: "left" | "right"; title?: string }) => {
     const active = sortKey === colKey;
     return (
       <th
         className={`px-4 py-2 text-${align} cursor-pointer select-none group whitespace-nowrap`}
         onClick={() => handleSort(colKey)}
+        title={title}
       >
         <span className={active ? "text-slate-700" : ""}>{label}</span>
         <span className={`ml-1 ${active ? "text-slate-600" : "text-slate-300 group-hover:text-slate-400"}`}>
@@ -321,7 +322,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
             <Th label="RSI" colKey="rsi" />
             <Th label="MFI" colKey="mfi" />
             <Th label="Short %" colKey="short_pct" />
-            <Th label="52wk%" colKey="week52" />
+            <Th label="52wk%" colKey="week52" title="Where the current price sits in the 52-week high/low range.&#10;Formula: (price − 52w low) / (52w high − 52w low) × 100&#10;Example: low $80, high $120, price $100 → (100−80)/(120−80)×100 = 50%&#10;40–80% healthy · near 0% bearish · near 100% may be overextended" />
             <Th label="Margin" colKey="margin" />
             <Th label="D/E" colKey="de" />
             {hasEtf && <Th label="Exp. Ratio" colKey="exp_ratio" />}
