@@ -108,10 +108,15 @@ export default function App() {
   const handleFontSizeChange = (s: string) => {
     setFontSize(s);
     localStorage.setItem("picker-font-size", s);
+    document.documentElement.style.fontSize = `${s}%`;
   };
 
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSize}%`;
+  }, [fontSize]);
+
   return (
-    <div className="min-h-screen bg-slate-50" style={{ fontFamily: FONTS[font] ?? FONTS.system, fontSize: `${fontSize}%` }}>
+    <div className="min-h-screen bg-slate-50" style={{ fontFamily: FONTS[font] ?? FONTS.system }}>
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4 flex-wrap">
         <div className="flex flex-col leading-tight mr-1">
           <h1 className="text-xl font-bold text-slate-800 tracking-tight">Picker</h1>
