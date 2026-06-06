@@ -16,28 +16,31 @@ A personal web app for evaluating stocks and ETFs side-by-side. Enter tickers ma
 - **Analyst consensus** — average analyst rating (Strong Buy → Sell), analyst count, mean price target, and % upside to target
 - **Expandable rows** — click any row for a full metric + score signal breakdown
 - **Score explainer** — `?` button documents dimension weights and every signal's thresholds
+- **Column tooltips** — hover any column header for a definition, formula, and scoring bands
 - **Comma-separated input** — add multiple tickers at once: `AAPL, VOO, NVDA`
 - **CSV import** — drag-and-drop a file with a `ticker` column to bulk-add
 - **Persistent watchlist** — saved to `~/.picker/watchlist.json`
 
 ## Columns
 
+Hover any column header in the app for a full definition, formula, and scoring bands.
+
 | Column | Stocks | ETFs | Notes |
 |---|---|---|---|
 | Last Close | ✓ | ✓ | Most recent closing price |
 | Score | ✓ | ✓ | Composite 0–100, BUY/HOLD/AVOID |
-| P/E | ✓ | ✓ | Trailing P/E |
-| Rev Grw | ✓ | — | YoY revenue growth |
-| RSI | ✓ | ✓ | 14-day RSI |
+| P/E | ✓ | ✓ | Trailing P/E · < 15 strong → > 40 weak |
+| Rev Grw | ✓ | — | YoY revenue growth · > 20% strong |
+| RSI | ✓ | ✓ | 14-day Relative Strength Index · < 30 oversold, > 70 overbought |
 | MFI | ✓ | ✓ | 14-day Money Flow Index (volume-weighted RSI); feeds the score |
-| Short % | ✓ | ✓ | Short interest as % of float |
-| 52wk% | ✓ | ✓ | `(price − 52w low) / (52w high − 52w low) × 100` |
-| Margin | ✓ | — | Profit margin |
-| D/E | ✓ | — | Debt/equity ratio |
-| Exp. Ratio | — | ✓ | Appears when any ETF is in the watchlist |
-| Analyst | ✓ | — | Avg. rating label + numeric scale |
+| Short % | ✓ | ✓ | Short interest as % of float; display only |
+| 52wk% | ✓ | ✓ | `(price − 52w low) / (52w high − 52w low) × 100` · 40–80% healthy |
+| Margin | ✓ | — | Net profit margin · > 20% strong |
+| D/E | ✓ | — | Debt/equity ratio · < 50 strong |
+| Exp. Ratio | — | ✓ | Annual fund cost as % of assets; shown when any ETF is in the list |
+| Analyst | ✓ | — | Avg. analyst rating (1.0 Strong Buy → 5.0 Sell); display only |
 | # Ana. | ✓ | — | Number of covering analysts |
-| Target | ✓ | — | % upside to mean price target |
+| Target | ✓ | — | % upside to analysts' mean price target; display only |
 
 ## Stack
 
