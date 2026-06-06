@@ -314,21 +314,36 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
         <thead>
           <tr className="bg-slate-100 text-slate-500 text-xs uppercase tracking-wide">
             <th className="px-4 py-2 text-left w-8"></th>
-            <Th label="Ticker" colKey="ticker" align="left" />
-            <Th label="Last Close" colKey="price" />
-            <Th label="Score" colKey="score" align="left" />
-            <Th label="P/E" colKey="pe" />
-            <Th label="Rev Grw" colKey="rev_grw" />
-            <Th label="RSI" colKey="rsi" />
-            <Th label="MFI" colKey="mfi" />
-            <Th label="Short %" colKey="short_pct" />
-            <Th label="52wk%" colKey="week52" title="Where the current price sits in the 52-week high/low range.&#10;Formula: (price − 52w low) / (52w high − 52w low) × 100&#10;Example: low $80, high $120, price $100 → (100−80)/(120−80)×100 = 50%&#10;40–80% healthy · near 0% bearish · near 100% may be overextended" />
-            <Th label="Margin" colKey="margin" />
-            <Th label="D/E" colKey="de" />
-            {hasEtf && <Th label="Exp. Ratio" colKey="exp_ratio" />}
-            <Th label="Analyst" colKey="analyst" />
-            <Th label="# Ana." colKey="analyst_count" />
-            <Th label="Target" colKey="target" />
+            <Th label="Ticker" colKey="ticker" align="left"
+              title="Stock or ETF ticker symbol" />
+            <Th label="Last Close" colKey="price"
+              title="Most recent closing price" />
+            <Th label="Score" colKey="score" align="left"
+              title="Composite 0–100 score.&#10;Stocks: 55% Fundamental + 45% Technical&#10;ETFs: 40% Fundamental + 35% Technical + 25% ETF-specific&#10;BUY ≥ 65 · HOLD 40–64 · AVOID < 40" />
+            <Th label="P/E" colKey="pe"
+              title="Trailing price-to-earnings ratio.&#10;< 15 strong · 15–25 good · 25–40 fair · > 40 weak&#10;Negative or missing = no earnings" />
+            <Th label="Rev Grw" colKey="rev_grw"
+              title="Year-over-year revenue growth.&#10;> 20% strong · 10–20% good · 0–10% fair · negative weak" />
+            <Th label="RSI" colKey="rsi"
+              title="Relative Strength Index (14-day).&#10;Measures momentum from recent price changes.&#10;< 30 oversold · 30–45 recovery · 45–60 neutral · > 70 overbought" />
+            <Th label="MFI" colKey="mfi"
+              title="Money Flow Index (14-day). Volume-weighted RSI.&#10;Formula: 100 − 100 / (1 + positive MF / negative MF)&#10;< 20 oversold (bullish) · 20–40 good · 40–60 neutral · 60–80 fair · > 80 overbought (bearish)&#10;Feeds the composite score." />
+            <Th label="Short %" colKey="short_pct"
+              title="Short interest as a percentage of float.&#10;High values (> 20%) signal bearish sentiment or short-squeeze potential.&#10;Display only — does not feed the composite score." />
+            <Th label="52wk%" colKey="week52"
+              title="Where the current price sits in the 52-week high/low range.&#10;Formula: (price − 52w low) / (52w high − 52w low) × 100&#10;Example: low $80, high $120, price $100 → (100−80)/(120−80)×100 = 50%&#10;40–80% healthy · near 0% bearish · near 100% may be overextended" />
+            <Th label="Margin" colKey="margin"
+              title="Net profit margin (net income / revenue).&#10;> 20% strong · 10–20% good · 0–10% fair · negative weak" />
+            <Th label="D/E" colKey="de"
+              title="Debt-to-equity ratio (total debt / shareholders' equity).&#10;Lower is generally safer.&#10;< 50 strong · 50–150 fair · 150–300 weak · > 300 poor" />
+            {hasEtf && <Th label="Exp. Ratio" colKey="exp_ratio"
+              title="Annual expense ratio — the fund's operating cost as % of assets.&#10;< 0.1% strong · 0.1–0.3% good · 0.3–0.75% fair · > 0.75% weak" />}
+            <Th label="Analyst" colKey="analyst"
+              title="Average analyst rating (1.0 = Strong Buy → 5.0 = Sell).&#10;Display only — does not feed the composite score." />
+            <Th label="# Ana." colKey="analyst_count"
+              title="Number of analysts covering this ticker.&#10;Higher count = more reliable consensus." />
+            <Th label="Target" colKey="target"
+              title="% upside to analysts' mean price target.&#10;Formula: (mean target / current price − 1) × 100&#10;Display only — does not feed the composite score." />
             <th className="px-4 py-2 text-right w-20">Actions</th>
           </tr>
         </thead>
