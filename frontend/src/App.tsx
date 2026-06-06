@@ -4,6 +4,7 @@ import type { TickerAnalysis } from "./api/client";
 import WatchlistTable from "./components/WatchlistTable";
 import TickerSearch from "./components/TickerSearch";
 import ImportModal from "./components/ImportModal";
+import ScoreExplainer from "./components/ScoreExplainer";
 
 function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   useEffect(() => {
@@ -53,11 +54,13 @@ export default function App() {
     }).catch(() => showToast("Could not reach backend. Is it running on port 8000?"));
   }, [fetchAnalysis]);
 
-  const handleAdd = async (ticker: string) => {
-    await api.addTicker(ticker);
-    const next = [...tickers, ticker];
+  const handleAdd = async (incoming: string[]) => {
+    const deduped = incoming.filter((t) => !tickers.includes(t));
+    if (!deduped.length) return;
+    await Promise.all(deduped.map((t) => api.addTicker(t)));
+    const next = [...tickers, ...deduped];
     setTickers(next);
-    fetchAnalysis(ticker, next);
+    deduped.forEach((t) => fetchAnalysis(t, next));
   };
 
   const handleRemove = async (ticker: string) => {
@@ -91,7 +94,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4 flex-wrap">
-        <h1 className="text-xl font-bold text-slate-800 tracking-tight mr-4">Picker</h1>
+        <h1 className="text-xl font-bold text-slate-800 tracking-tight mr-1">Picker</h1>
+        <ScoreExplainer />
         <TickerSearch onAdd={handleAdd} />
         <button
           onClick={() => setShowImport(true)}

@@ -43,6 +43,12 @@ def compute(ticker: str) -> dict[str, Any]:
     except Exception:
         pass
 
+    current_price = _safe(info.get("currentPrice") or info.get("regularMarketPrice"))
+    target_price = _safe(info.get("targetMeanPrice"))
+    upside_pct = None
+    if current_price and target_price and current_price > 0:
+        upside_pct = round((target_price / current_price - 1) * 100, 1)
+
     return {
         "pe_trailing": _safe(info.get("trailingPE")),
         "pe_forward": _safe(info.get("forwardPE")),
@@ -56,4 +62,9 @@ def compute(ticker: str) -> dict[str, Any]:
         "debt_to_equity": _safe(info.get("debtToEquity")),
         "current_ratio": _safe(info.get("currentRatio")),
         "fcf_per_share": fcf_per_share,
+        "analyst_rating": _safe(info.get("recommendationMean")),
+        "analyst_rating_key": info.get("recommendationKey"),
+        "analyst_count": _safe(info.get("numberOfAnalystOpinions"), cast=int),
+        "analyst_target_price": target_price,
+        "analyst_upside_pct": upside_pct,
     }

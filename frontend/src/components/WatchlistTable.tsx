@@ -18,6 +18,31 @@ function fmt(n: number | null | undefined, decimals = 0) {
   return n.toFixed(decimals);
 }
 
+const RATING_LABEL: Record<string, string> = {
+  strong_buy: "Strong Buy",
+  buy: "Buy",
+  hold: "Hold",
+  underperform: "Underperform",
+  sell: "Sell",
+};
+
+function AnalystRatingCell({ ratingKey, rating }: { ratingKey: string | null; rating: number | null }) {
+  if (!ratingKey && rating == null) return <span className="text-slate-300">—</span>;
+  const label = ratingKey ? (RATING_LABEL[ratingKey] ?? ratingKey) : null;
+  const colorClass =
+    ratingKey === "strong_buy" || ratingKey === "buy"
+      ? "text-emerald-700"
+      : ratingKey === "hold"
+      ? "text-yellow-700"
+      : "text-red-600";
+  return (
+    <span className={`${colorClass} tabular-nums`}>
+      {label ?? ""}
+      {rating != null && <span className="text-slate-400 text-xs ml-1">({rating.toFixed(1)})</span>}
+    </span>
+  );
+}
+
 function ExpandedRow({ row }: { row: TickerAnalysis }) {
   const f = row.fundamental;
   const t = row.technical;
@@ -54,6 +79,36 @@ function ExpandedRow({ row }: { row: TickerAnalysis }) {
                 </td>
               </tr>
             ))}
+            {/* Analyst block */}
+            {(f.analyst_rating != null || f.analyst_count != null) && (
+              <>
+                <tr className="border-b border-slate-100">
+                  <td className="py-0.5 text-slate-500 pr-4 pt-2 font-semibold" colSpan={2}>Analyst consensus</td>
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="py-0.5 text-slate-500 pr-4">Rating</td>
+                  <td className="py-0.5 text-right">
+                    <AnalystRatingCell ratingKey={f.analyst_rating_key} rating={f.analyst_rating} />
+                  </td>
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="py-0.5 text-slate-500 pr-4"># Analysts</td>
+                  <td className="py-0.5 font-mono text-right">{f.analyst_count ?? "—"}</td>
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="py-0.5 text-slate-500 pr-4">Price target</td>
+                  <td className="py-0.5 font-mono text-right">
+                    <MetricCell value={f.analyst_target_price} format="price" />
+                  </td>
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="py-0.5 text-slate-500 pr-4">Upside</td>
+                  <td className="py-0.5 font-mono text-right">
+                    <MetricCell value={f.analyst_upside_pct} format="pct" good="high" />
+                  </td>
+                </tr>
+              </>
+            )}
           </tbody>
         </table>
       </div>
@@ -186,6 +241,8 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     );
   }
 
+  const totalCols = 11 + (hasEtf ? 1 : 0);
+
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
       <table className="w-full text-sm">
@@ -201,7 +258,10 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
             <th className="px-4 py-2 text-right">Margin</th>
             <th className="px-4 py-2 text-right">D/E</th>
             {hasEtf && <th className="px-4 py-2 text-right">Exp. Ratio</th>}
-            <th className="px-4 py-2 text-right w-24">Actions</th>
+            <th className="px-4 py-2 text-right">Analyst</th>
+            <th className="px-4 py-2 text-right"># Ana.</th>
+            <th className="px-4 py-2 text-right">Target</th>
+            <th className="px-4 py-2 text-right w-20">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -262,6 +322,24 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
                         : <span className="text-slate-300">—</span>}
                     </td>
                   )}
+                  <td className="px-4 py-3 text-right text-xs">
+                    {row ? (
+                      <AnalystRatingCell
+                        ratingKey={row.fundamental.analyst_rating_key}
+                        rating={row.fundamental.analyst_rating}
+                      />
+                    ) : <span className="text-slate-300">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono text-slate-600">
+                    {row?.fundamental.analyst_count ?? <span className="text-slate-300">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    {row?.fundamental.analyst_upside_pct != null ? (
+                      <MetricCell value={row.fundamental.analyst_upside_pct} format="pct" good="high" />
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                     <button
                       className="text-xs text-blue-500 hover:text-blue-700 mr-2"
@@ -279,7 +357,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
                 </tr>
                 {isExpanded && row && (
                   <tr key={`${ticker}-expanded`} className="border-t border-slate-100">
-                    <td colSpan={hasEtf ? 11 : 10} className="p-0">
+                    <td colSpan={totalCols} className="p-0">
                       <ExpandedRow row={row} />
                     </td>
                   </tr>

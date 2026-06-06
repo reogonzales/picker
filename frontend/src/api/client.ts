@@ -22,6 +22,11 @@ export interface FundamentalData {
   debt_to_equity: number | null;
   current_ratio: number | null;
   fcf_per_share: number | null;
+  analyst_rating: number | null;
+  analyst_rating_key: string | null;
+  analyst_count: number | null;
+  analyst_target_price: number | null;
+  analyst_upside_pct: number | null;
 }
 
 export interface TechnicalData {
