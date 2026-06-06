@@ -220,8 +220,32 @@ function ExpandedRow({ row }: { row: TickerAnalysis }) {
   );
 }
 
+type SortKey =
+  | "ticker" | "score" | "pe" | "rev_grw" | "rsi" | "week52"
+  | "margin" | "de" | "exp_ratio" | "analyst" | "analyst_count" | "target";
+
+function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): number | string | null {
+  if (key === "ticker") return ticker;
+  if (!row) return null;
+  switch (key) {
+    case "score":        return row.score.score;
+    case "pe":           return row.fundamental.pe_trailing ?? null;
+    case "rev_grw":      return row.fundamental.revenue_growth_pct ?? null;
+    case "rsi":          return row.technical.rsi ?? null;
+    case "week52":       return row.technical.week52_pct ?? null;
+    case "margin":       return row.fundamental.profit_margin_pct ?? null;
+    case "de":           return row.fundamental.debt_to_equity ?? null;
+    case "exp_ratio":    return row.etf?.expense_ratio_pct ?? null;
+    case "analyst":      return row.fundamental.analyst_rating ?? null;
+    case "analyst_count":return row.fundamental.analyst_count ?? null;
+    case "target":       return row.fundamental.analyst_upside_pct ?? null;
+  }
+}
+
 export default function WatchlistTable({ rows, tickers, loading, onRemove, onRefresh }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const hasEtf = rows.some((r) => r?.etf != null);
 
   const toggle = (ticker: string) => {
@@ -231,6 +255,42 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
       else next.add(ticker);
       return next;
     });
+  };
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const sortedTickers = [...tickers].sort((a, b) => {
+    if (!sortKey) return 0;
+    const rowA = rows.find((r) => r?.ticker === a) ?? null;
+    const rowB = rows.find((r) => r?.ticker === b) ?? null;
+    const va = getVal(sortKey, a, rowA);
+    const vb = getVal(sortKey, b, rowB);
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    if (typeof va === "string" && typeof vb === "string")
+      return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+    return sortDir === "asc" ? (va as number) - (vb as number) : (vb as number) - (va as number);
+  });
+
+  const Th = ({
+    label, colKey, align = "right",
+  }: { label: string; colKey: SortKey; align?: "left" | "right" }) => {
+    const active = sortKey === colKey;
+    return (
+      <th
+        className={`px-4 py-2 text-${align} cursor-pointer select-none group whitespace-nowrap`}
+        onClick={() => handleSort(colKey)}
+      >
+        <span className={active ? "text-slate-700" : ""}>{label}</span>
+        <span className={`ml-1 ${active ? "text-slate-600" : "text-slate-300 group-hover:text-slate-400"}`}>
+          {active ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+        </span>
+      </th>
+    );
   };
 
   if (tickers.length === 0) {
@@ -249,23 +309,23 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
         <thead>
           <tr className="bg-slate-100 text-slate-500 text-xs uppercase tracking-wide">
             <th className="px-4 py-2 text-left w-8"></th>
-            <th className="px-4 py-2 text-left">Ticker</th>
-            <th className="px-4 py-2 text-left">Score</th>
-            <th className="px-4 py-2 text-right">P/E</th>
-            <th className="px-4 py-2 text-right">Rev Grw</th>
-            <th className="px-4 py-2 text-right">RSI</th>
-            <th className="px-4 py-2 text-right">52wk%</th>
-            <th className="px-4 py-2 text-right">Margin</th>
-            <th className="px-4 py-2 text-right">D/E</th>
-            {hasEtf && <th className="px-4 py-2 text-right">Exp. Ratio</th>}
-            <th className="px-4 py-2 text-right">Analyst</th>
-            <th className="px-4 py-2 text-right"># Ana.</th>
-            <th className="px-4 py-2 text-right">Target</th>
+            <Th label="Ticker" colKey="ticker" align="left" />
+            <Th label="Score" colKey="score" align="left" />
+            <Th label="P/E" colKey="pe" />
+            <Th label="Rev Grw" colKey="rev_grw" />
+            <Th label="RSI" colKey="rsi" />
+            <Th label="52wk%" colKey="week52" />
+            <Th label="Margin" colKey="margin" />
+            <Th label="D/E" colKey="de" />
+            {hasEtf && <Th label="Exp. Ratio" colKey="exp_ratio" />}
+            <Th label="Analyst" colKey="analyst" />
+            <Th label="# Ana." colKey="analyst_count" />
+            <Th label="Target" colKey="target" />
             <th className="px-4 py-2 text-right w-20">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {tickers.map((ticker) => {
+          {sortedTickers.map((ticker) => {
             const row = rows.find((r) => r?.ticker === ticker) ?? null;
             const isLoading = loading[ticker];
             const isExpanded = expanded.has(ticker);
