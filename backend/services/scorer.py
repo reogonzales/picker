@@ -117,6 +117,20 @@ def _score_technical(t: dict) -> tuple[float, dict]:
         hist = macd.get("hist", 0) or 0
         signals["macd"] = 0.8 if hist > 0 else 0.3
 
+    # MFI: volume-weighted RSI — oversold is bullish
+    mfi = t.get("mfi")
+    if mfi is not None:
+        if mfi < 20:
+            signals["mfi"] = 0.9   # oversold
+        elif mfi < 40:
+            signals["mfi"] = 0.75
+        elif mfi < 60:
+            signals["mfi"] = 0.6   # neutral
+        elif mfi < 80:
+            signals["mfi"] = 0.4
+        else:
+            signals["mfi"] = 0.2   # overbought
+
     # 52-week range: not at extreme top (potential overextension)
     w52 = t.get("week52_pct")
     if w52 is not None:
