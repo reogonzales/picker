@@ -28,6 +28,7 @@ Hover any column header in the app for a full definition, formula, and scoring b
 | Column | Stocks | ETFs | Notes |
 |---|---|---|---|
 | Last Close | ✓ | ✓ | Most recent closing price |
+| Mkt Cap | ✓ | ✓ | Market capitalisation, displayed as $B / $M |
 | Score | ✓ | ✓ | Composite 0–100, BUY/HOLD/AVOID |
 | P/E | ✓ | ✓ | Trailing P/E · < 15 strong → > 40 weak |
 | Rev Grw | ✓ | — | YoY revenue growth · > 20% strong |
