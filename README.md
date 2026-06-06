@@ -10,7 +10,7 @@ A personal web app for evaluating stocks and ETFs side-by-side. Enter tickers ma
 
 - **Composite score** — weighted 0–100 score with BUY / HOLD / AVOID verdict per ticker
 - **Fundamental metrics** — P/E, EPS, revenue growth, profit margin, ROE, debt/equity, FCF
-- **Technical metrics** — SMA50/200, RSI, MACD, 52-week range position, beta
+- **Technical metrics** — SMA50/200, RSI, MFI, MACD, 52-week range position, beta, short interest
 - **ETF-specific metrics** — expense ratio, AUM, dividend yield, top 10 holdings
 - **Holdings overlap** — pairwise overlap % between ETFs in your watchlist
 - **Analyst consensus** — average analyst rating (Strong Buy → Sell), analyst count, mean price target, and % upside to target
@@ -24,11 +24,14 @@ A personal web app for evaluating stocks and ETFs side-by-side. Enter tickers ma
 
 | Column | Stocks | ETFs | Notes |
 |---|---|---|---|
+| Last Close | ✓ | ✓ | Most recent closing price |
 | Score | ✓ | ✓ | Composite 0–100, BUY/HOLD/AVOID |
 | P/E | ✓ | ✓ | Trailing P/E |
 | Rev Grw | ✓ | — | YoY revenue growth |
 | RSI | ✓ | ✓ | 14-day RSI |
-| 52wk% | ✓ | ✓ | Position in 52-week range |
+| MFI | ✓ | ✓ | 14-day Money Flow Index (volume-weighted RSI); feeds the score |
+| Short % | ✓ | ✓ | Short interest as % of float |
+| 52wk% | ✓ | ✓ | `(price − 52w low) / (52w high − 52w low) × 100` |
 | Margin | ✓ | — | Profit margin |
 | D/E | ✓ | — | Debt/equity ratio |
 | Exp. Ratio | — | ✓ | Appears when any ETF is in the watchlist |
@@ -71,7 +74,7 @@ npm run dev                   # http://localhost:5173
 ./start.sh
 ```
 
-Starts both servers. Frontend proxies API calls to `localhost:8000` so no CORS config needed in the browser.
+Starts both servers and writes a `.picker.pids` file. Run `./stop.sh` to cleanly stop both processes. Frontend proxies API calls to `localhost:8000` so no CORS config needed in the browser.
 
 ## Alpha Vantage (optional)
 
@@ -93,7 +96,7 @@ Without it, RSI and MACD fall back to calculations from yfinance price history �
 
 Scores map to verdicts: **BUY** ≥ 65 · **HOLD** 40–64 · **AVOID** < 40.
 
-Analyst data (rating, count, price target) is shown as additional context but does **not** feed into the composite score. Click `?` in the app for a full breakdown of every signal and its thresholds.
+Analyst data (rating, count, price target) and Short % are shown as additional context but do **not** feed into the composite score. Click `?` in the app for a full breakdown of every signal and its thresholds.
 
 ## CSV import format
 
