@@ -13,9 +13,28 @@ A personal web app for evaluating stocks and ETFs side-by-side. Enter tickers ma
 - **Technical metrics** — SMA50/200, RSI, MACD, 52-week range position, beta
 - **ETF-specific metrics** — expense ratio, AUM, dividend yield, top 10 holdings
 - **Holdings overlap** — pairwise overlap % between ETFs in your watchlist
+- **Analyst consensus** — average analyst rating (Strong Buy → Sell), analyst count, mean price target, and % upside to target
 - **Expandable rows** — click any row for a full metric + score signal breakdown
+- **Score explainer** — `?` button documents dimension weights and every signal's thresholds
+- **Comma-separated input** — add multiple tickers at once: `AAPL, VOO, NVDA`
 - **CSV import** — drag-and-drop a file with a `ticker` column to bulk-add
 - **Persistent watchlist** — saved to `~/.picker/watchlist.json`
+
+## Columns
+
+| Column | Stocks | ETFs | Notes |
+|---|---|---|---|
+| Score | ✓ | ✓ | Composite 0–100, BUY/HOLD/AVOID |
+| P/E | ✓ | ✓ | Trailing P/E |
+| Rev Grw | ✓ | — | YoY revenue growth |
+| RSI | ✓ | ✓ | 14-day RSI |
+| 52wk% | ✓ | ✓ | Position in 52-week range |
+| Margin | ✓ | — | Profit margin |
+| D/E | ✓ | — | Debt/equity ratio |
+| Exp. Ratio | — | ✓ | Appears when any ETF is in the watchlist |
+| Analyst | ✓ | — | Avg. rating label + numeric scale |
+| # Ana. | ✓ | — | Number of covering analysts |
+| Target | ✓ | — | % upside to mean price target |
 
 ## Stack
 
@@ -73,6 +92,8 @@ Without it, RSI and MACD fall back to calculations from yfinance price history �
 | ETF-specific | — | 25% |
 
 Scores map to verdicts: **BUY** ≥ 65 · **HOLD** 40–64 · **AVOID** < 40.
+
+Analyst data (rating, count, price target) is shown as additional context but does **not** feed into the composite score. Click `?` in the app for a full breakdown of every signal and its thresholds.
 
 ## CSV import format
 
