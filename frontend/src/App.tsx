@@ -94,7 +94,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4 flex-wrap">
-        <h1 className="text-xl font-bold text-slate-800 tracking-tight mr-1">Picker</h1>
+        <div className="flex flex-col leading-tight mr-1">
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight">Picker</h1>
+          <span className="text-xs text-slate-400">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+        </div>
         <ScoreExplainer />
         <TickerSearch onAdd={handleAdd} />
         <button

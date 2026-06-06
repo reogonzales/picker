@@ -221,13 +221,14 @@ function ExpandedRow({ row }: { row: TickerAnalysis }) {
 }
 
 type SortKey =
-  | "ticker" | "score" | "pe" | "rev_grw" | "rsi" | "week52"
+  | "ticker" | "price" | "score" | "pe" | "rev_grw" | "rsi" | "week52"
   | "margin" | "de" | "exp_ratio" | "analyst" | "analyst_count" | "target";
 
 function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): number | string | null {
   if (key === "ticker") return ticker;
   if (!row) return null;
   switch (key) {
+    case "price":        return row.technical.current_price ?? null;
     case "score":        return row.score.score;
     case "pe":           return row.fundamental.pe_trailing ?? null;
     case "rev_grw":      return row.fundamental.revenue_growth_pct ?? null;
@@ -301,7 +302,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     );
   }
 
-  const totalCols = 11 + (hasEtf ? 1 : 0);
+  const totalCols = 12 + (hasEtf ? 1 : 0);
 
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
@@ -310,6 +311,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
           <tr className="bg-slate-100 text-slate-500 text-xs uppercase tracking-wide">
             <th className="px-4 py-2 text-left w-8"></th>
             <Th label="Ticker" colKey="ticker" align="left" />
+            <Th label="Last Close" colKey="price" />
             <Th label="Score" colKey="score" align="left" />
             <Th label="P/E" colKey="pe" />
             <Th label="Rev Grw" colKey="rev_grw" />
@@ -347,6 +349,9 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
                         {row.name}
                       </div>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    <MetricCell value={row?.technical.current_price} format="price" />
                   </td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     {isLoading ? (
