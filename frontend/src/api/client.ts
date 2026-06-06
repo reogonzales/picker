@@ -10,6 +10,7 @@ export interface MacdData {
 }
 
 export interface FundamentalData {
+  market_cap: number | null;
   pe_trailing: number | null;
   pe_forward: number | null;
   eps_trailing: number | null;

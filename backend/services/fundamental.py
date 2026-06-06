@@ -49,7 +49,11 @@ def compute(ticker: str) -> dict[str, Any]:
     if current_price and target_price and current_price > 0:
         upside_pct = round((target_price / current_price - 1) * 100, 1)
 
+    raw_cap = info.get("marketCap")
+    market_cap = int(raw_cap) if raw_cap is not None else None
+
     return {
+        "market_cap": market_cap,
         "pe_trailing": _safe(info.get("trailingPE")),
         "pe_forward": _safe(info.get("forwardPE")),
         "eps_trailing": _safe(info.get("trailingEps")),

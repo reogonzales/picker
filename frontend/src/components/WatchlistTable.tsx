@@ -221,7 +221,7 @@ function ExpandedRow({ row }: { row: TickerAnalysis }) {
 }
 
 type SortKey =
-  | "ticker" | "price" | "score" | "pe" | "rev_grw" | "rsi" | "mfi" | "short_pct" | "week52"
+  | "ticker" | "price" | "market_cap" | "score" | "pe" | "rev_grw" | "rsi" | "mfi" | "short_pct" | "week52"
   | "margin" | "de" | "exp_ratio" | "analyst" | "analyst_count" | "target";
 
 function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): number | string | null {
@@ -229,6 +229,7 @@ function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): numbe
   if (!row) return null;
   switch (key) {
     case "price":        return row.technical.current_price ?? null;
+    case "market_cap":   return row.fundamental.market_cap ?? null;
     case "score":        return row.score.score;
     case "pe":           return row.fundamental.pe_trailing ?? null;
     case "rev_grw":      return row.fundamental.revenue_growth_pct ?? null;
@@ -305,7 +306,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     );
   }
 
-  const totalCols = 14 + (hasEtf ? 1 : 0);
+  const totalCols = 15 + (hasEtf ? 1 : 0);
 
   return (
     <>
@@ -318,6 +319,8 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
               title="Stock or ETF ticker symbol" />
             <Th label="Last Close" colKey="price"
               title="Most recent closing price" />
+            <Th label="Mkt Cap" colKey="market_cap"
+              title="Market capitalisation (shares outstanding × price).&#10;Displayed as B (billions) or M (millions)." />
             <Th label="Score" colKey="score" align="left"
               title="Composite 0–100 score.&#10;Stocks: 55% Fundamental + 45% Technical&#10;ETFs: 40% Fundamental + 35% Technical + 25% ETF-specific&#10;BUY ≥ 65 · HOLD 40–64 · AVOID < 40" />
             <Th label="P/E" colKey="pe"
@@ -373,6 +376,11 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
                   </td>
                   <td className="px-4 py-3 text-right font-mono">
                     <MetricCell value={row?.technical.current_price} format="price" />
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono text-slate-600">
+                    {row?.fundamental.market_cap != null
+                      ? fmt(row.fundamental.market_cap)
+                      : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     {isLoading ? (
