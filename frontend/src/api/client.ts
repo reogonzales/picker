@@ -28,6 +28,8 @@ export interface FundamentalData {
   analyst_count: number | null;
   analyst_target_price: number | null;
   analyst_upside_pct: number | null;
+  moat_label: string | null;
+  moat_score: number | null;
 }
 
 export interface TechnicalData {

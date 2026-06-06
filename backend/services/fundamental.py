@@ -43,6 +43,24 @@ def compute(ticker: str) -> dict[str, Any]:
     except Exception:
         pass
 
+    # MOAT: count how many durable-advantage signals are strong
+    moat_signals = 0
+    gross_m = _safe(info.get("grossMargins"))
+    if gross_m is not None and gross_m > 0.40: moat_signals += 1
+    op_m = _safe(info.get("operatingMargins"))
+    if op_m is not None and op_m > 0.20: moat_signals += 1
+    roe = _safe(info.get("returnOnEquity"))
+    if roe is not None and roe > 0.20: moat_signals += 1
+    de = _safe(info.get("debtToEquity"))
+    if de is not None and de < 50: moat_signals += 1
+    if fcf_per_share is not None and fcf_per_share > 0: moat_signals += 1
+    if moat_signals >= 4:
+        moat_label = "Wide"
+    elif moat_signals >= 2:
+        moat_label = "Narrow"
+    else:
+        moat_label = "None"
+
     current_price = _safe(info.get("currentPrice") or info.get("regularMarketPrice"))
     target_price = _safe(info.get("targetMeanPrice"))
     upside_pct = None
@@ -71,4 +89,6 @@ def compute(ticker: str) -> dict[str, Any]:
         "analyst_count": _safe(info.get("numberOfAnalystOpinions"), cast=int),
         "analyst_target_price": target_price,
         "analyst_upside_pct": upside_pct,
+        "moat_label": moat_label,
+        "moat_score": moat_signals,
     }

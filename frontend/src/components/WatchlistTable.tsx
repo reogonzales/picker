@@ -222,13 +222,13 @@ function ExpandedRow({ row }: { row: TickerAnalysis }) {
 }
 
 type SortKey =
-  | "ticker" | "price" | "market_cap" | "score" | "pe" | "rev_grw" | "rsi" | "mfi" | "short_pct" | "week52"
+  | "ticker" | "price" | "market_cap" | "score" | "moat" | "pe" | "rev_grw" | "rsi" | "mfi" | "short_pct" | "week52"
   | "margin" | "de" | "exp_ratio" | "analyst" | "analyst_count" | "target";
 
 type ColKey = SortKey | "expand" | "actions";
 
 const DEFAULT_WIDTHS: Record<ColKey, number> = {
-  expand: 28, ticker: 150, price: 88, market_cap: 88, score: 98,
+  expand: 28, ticker: 150, price: 88, market_cap: 88, score: 98, moat: 72,
   pe: 60, rev_grw: 72, rsi: 52, mfi: 52, short_pct: 68, week52: 68,
   margin: 68, de: 56, exp_ratio: 80, analyst: 88, analyst_count: 58,
   target: 62, actions: 64,
@@ -241,6 +241,7 @@ function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): numbe
     case "price":        return row.technical.current_price ?? null;
     case "market_cap":   return row.fundamental.market_cap ?? null;
     case "score":        return row.score.score;
+    case "moat":         return row.fundamental.moat_score ?? null;
     case "pe":           return row.fundamental.pe_trailing ?? null;
     case "rev_grw":      return row.fundamental.revenue_growth_pct ?? null;
     case "rsi":          return row.technical.rsi ?? null;
@@ -254,6 +255,12 @@ function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): numbe
     case "analyst_count":return row.fundamental.analyst_count ?? null;
     case "target":       return row.fundamental.analyst_upside_pct ?? null;
   }
+}
+
+function MoatCell({ label }: { label: string | null | undefined }) {
+  if (!label) return <span className="text-slate-300">—</span>;
+  const color = label === "Wide" ? "text-emerald-700" : label === "Narrow" ? "text-yellow-700" : "text-slate-400";
+  return <span className={`font-medium ${color}`}>{label}</span>;
 }
 
 export default function WatchlistTable({ rows, tickers, loading, onRemove, onRefresh }: Props) {
@@ -354,7 +361,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     );
   }
 
-  const totalCols = 15 + (hasEtf ? 1 : 0);
+  const totalCols = 16 + (hasEtf ? 1 : 0);
 
   return (
     <>
@@ -366,6 +373,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
           <col style={{ width: colWidths.price }} />
           <col style={{ width: colWidths.market_cap }} />
           <col style={{ width: colWidths.score }} />
+          <col style={{ width: colWidths.moat }} />
           <col style={{ width: colWidths.pe }} />
           <col style={{ width: colWidths.rev_grw }} />
           <col style={{ width: colWidths.rsi }} />
@@ -396,6 +404,8 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
               title="Market capitalisation (shares outstanding × price).&#10;Displayed as B (billions) or M (millions)." />
             <Th label="Score" colKey="score" align="left"
               title="Composite 0–100 score.&#10;Stocks: 55% Fundamental + 45% Technical&#10;ETFs: 40% Fundamental + 35% Technical + 25% ETF-specific&#10;BUY ≥ 65 · HOLD 40–64 · AVOID < 40" />
+            <Th label="Moat" colKey="moat" align="left"
+              title="Economic moat estimate based on 5 signals:&#10;gross margin > 40%, operating margin > 20%, ROE > 20%, D/E < 50, FCF > 0&#10;Wide = 4–5 signals · Narrow = 2–3 · None = 0–1&#10;Display only — does not feed the composite score." />
             <Th label="P/E" colKey="pe"
               title="Trailing price-to-earnings ratio.&#10;< 15 strong · 15–25 good · 25–40 fair · > 40 weak&#10;Negative or missing = no earnings" />
             <Th label="Rev Grw" colKey="rev_grw"
@@ -468,6 +478,9 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
                     ) : (
                       <span className="text-xs text-slate-300">—</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-left">
+                    <MoatCell label={row?.fundamental.moat_label} />
                   </td>
                   <td className="px-4 py-3 text-right font-mono">
                     <MetricCell value={row?.fundamental.pe_trailing} format="num" />

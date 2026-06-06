@@ -25,6 +25,7 @@ export default function App() {
   const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
   const [showImport, setShowImport] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [font, setFont] = useState<string>(() => localStorage.getItem("picker-font") ?? "system");
   const abortRefs = useRef<Record<string, AbortController>>({});
 
   const showToast = (msg: string) => setToast(msg);
@@ -91,8 +92,20 @@ export default function App() {
 
   const rows = tickers.map((t) => analyses[t] ?? null);
 
+  const FONTS: Record<string, string> = {
+    system: "system-ui, -apple-system, sans-serif",
+    inter: "'Inter', sans-serif",
+    lato: "'Lato', sans-serif",
+    mono: "'JetBrains Mono', ui-monospace, monospace",
+  };
+
+  const handleFontChange = (f: string) => {
+    setFont(f);
+    localStorage.setItem("picker-font", f);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50" style={{ fontFamily: FONTS[font] ?? FONTS.system }}>
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4 flex-wrap">
         <div className="flex flex-col leading-tight mr-1">
           <h1 className="text-xl font-bold text-slate-800 tracking-tight">Picker</h1>
@@ -106,9 +119,20 @@ export default function App() {
         >
           Import CSV
         </button>
+        <select
+          value={font}
+          onChange={(e) => handleFontChange(e.target.value)}
+          className="ml-auto rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-600 bg-white hover:bg-slate-50 focus:outline-none"
+          title="Font"
+        >
+          <option value="system">System font</option>
+          <option value="inter">Inter</option>
+          <option value="lato">Lato</option>
+          <option value="mono">Monospace</option>
+        </select>
         <button
           onClick={handleRefreshAll}
-          className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 ml-auto"
+          className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
         >
           ↻ Refresh All
         </button>
