@@ -82,6 +82,8 @@ export default function ScoreExplainer() {
                 <div><span className="font-medium">Price vs SMA50</span> — within −5% to +10% of 50-day MA is healthy; far below is bearish</div>
                 <div><span className="font-medium">Price vs SMA200</span> — above 200-day MA (golden cross) is bullish</div>
                 <div><span className="font-medium">MACD histogram</span> — positive = bullish momentum, negative = bearish</div>
+                <div><span className="font-medium">MFI (14d)</span> — Money Flow Index: volume-weighted RSI using typical price × volume over 14 days. &lt;20 oversold (bullish), 20–80 neutral, &gt;80 overbought (bearish). Display-only — does not feed the composite score</div>
+                <div><span className="font-medium">Short %</span> — short interest as a percentage of float. High short % (&gt;20%) can signal bearish sentiment or squeeze potential. Display-only — does not feed the composite score</div>
                 <div><span className="font-medium">52-week range (52wk%)</span> — position within the 52-week high/low range: <code className="text-xs bg-slate-100 px-1 rounded">(price − 52w low) / (52w high − 52w low) × 100</code>. 40–80% is healthy; near 0% is bearish momentum, near 100% may signal overextension</div>
               </div>
             </div>
