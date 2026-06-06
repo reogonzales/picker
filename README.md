@@ -17,6 +17,7 @@ A personal web app for evaluating stocks and ETFs side-by-side. Enter tickers ma
 - **Expandable rows** — click any row for a full metric + score signal breakdown
 - **Score explainer** — `?` button documents dimension weights and every signal's thresholds
 - **Column tooltips** — hover any column header for a definition, formula, and scoring bands
+- **Resizable columns** — drag any column's right edge to resize; 40px minimum width
 - **Comma-separated input** — add multiple tickers at once: `AAPL, VOO, NVDA`
 - **CSV import** — drag-and-drop a file with a `ticker` column to bulk-add
 - **Persistent watchlist** — saved to `~/.picker/watchlist.json`
