@@ -30,6 +30,7 @@ export interface FundamentalData {
   analyst_upside_pct: number | null;
   moat_label: string | null;
   moat_score: number | null;
+  dcf_pct: number | null;
 }
 
 export interface TechnicalData {

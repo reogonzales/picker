@@ -61,7 +61,29 @@ def compute(ticker: str) -> dict[str, Any]:
     else:
         moat_label = "None"
 
+    # DCF: 10-year two-stage model using FCF/share
+    # Stage 1 (yr 1-5): growth capped at 25%; Stage 2 (yr 6-10): half that; terminal 3%, discount 10%
+    dcf_pct = None
     current_price = _safe(info.get("currentPrice") or info.get("regularMarketPrice"))
+    if fcf_per_share and fcf_per_share > 0 and current_price and current_price > 0:
+        try:
+            raw_g = (rev_growth or 0) / 100
+            g1 = min(max(raw_g, 0.0), 0.25)
+            g2 = g1 / 2
+            r, g_t = 0.10, 0.03
+            pv, fcf = 0.0, fcf_per_share
+            for yr in range(1, 6):
+                fcf *= (1 + g1)
+                pv += fcf / (1 + r) ** yr
+            for yr in range(6, 11):
+                fcf *= (1 + g2)
+                pv += fcf / (1 + r) ** yr
+            tv = fcf * (1 + g_t) / (r - g_t)
+            pv += tv / (1 + r) ** 10
+            dcf_pct = round((pv / current_price - 1) * 100, 1)
+        except Exception:
+            pass
+
     target_price = _safe(info.get("targetMeanPrice"))
     upside_pct = None
     if current_price and target_price and current_price > 0:
@@ -91,4 +113,5 @@ def compute(ticker: str) -> dict[str, Any]:
         "analyst_upside_pct": upside_pct,
         "moat_label": moat_label,
         "moat_score": moat_signals,
+        "dcf_pct": dcf_pct,
     }
