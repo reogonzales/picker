@@ -60,6 +60,18 @@ export interface EtfData {
   dividend_yield_pct: number | null;
   top_holdings: EtfHolding[];
   overlap: Record<string, number>;
+  num_holdings: number | null;
+  category: string | null;
+  fund_family: string | null;
+  beta_3y: number | null;
+  ytd_pct: number | null;
+  mtd_pct: number | null;
+  qtd_pct: number | null;
+  perf_1y_pct: number | null;
+  perf_3y_pct: number | null;
+  perf_5y_pct: number | null;
+  since_inception_pct: number | null;
+  inception_date: string | null;
 }
 
 export interface ScoreBreakdown {

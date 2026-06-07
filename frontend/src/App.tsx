@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api/client";
 import type { TickerAnalysis } from "./api/client";
 import WatchlistTable from "./components/WatchlistTable";
+import ETFTable from "./components/ETFTable";
 import TickerSearch from "./components/TickerSearch";
 import ImportModal from "./components/ImportModal";
 import ScoreExplainer from "./components/ScoreExplainer";
@@ -26,6 +27,7 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [font, setFont] = useState<string>(() => localStorage.getItem("picker-font") ?? "system");
+  const [tab, setTab] = useState<"watchlist" | "etf">("watchlist");
   const [fontSize, setFontSize] = useState<string>(() => localStorage.getItem("picker-font-size") ?? "70");
   const abortRefs = useRef<Record<string, AbortController>>({});
 
@@ -162,14 +164,40 @@ export default function App() {
         </button>
       </header>
 
-      <main className="px-6 py-6">
-        <WatchlistTable
-          rows={rows}
-          tickers={tickers}
-          loading={loadingMap}
-          onRemove={handleRemove}
-          onRefresh={handleRefresh}
-        />
+      <main className="px-6 py-4">
+        <div className="flex gap-1 mb-4 border-b border-slate-200">
+          {(["watchlist", "etf"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2 text-sm font-medium capitalize rounded-t border-b-2 transition-colors ${
+                tab === t
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {t === "etf" ? "ETFs" : "Watchlist"}
+            </button>
+          ))}
+        </div>
+
+        {tab === "watchlist" ? (
+          <WatchlistTable
+            rows={rows}
+            tickers={tickers}
+            loading={loadingMap}
+            onRemove={handleRemove}
+            onRefresh={handleRefresh}
+          />
+        ) : (
+          <ETFTable
+            rows={rows}
+            tickers={tickers}
+            loading={loadingMap}
+            onRemove={handleRemove}
+            onRefresh={handleRefresh}
+          />
+        )}
       </main>
 
       {showImport && (
