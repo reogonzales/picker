@@ -223,14 +223,14 @@ function ExpandedRow({ row }: { row: TickerAnalysis }) {
 
 type SortKey =
   | "ticker" | "price" | "market_cap" | "score" | "moat" | "pe" | "rev_grw" | "rsi" | "mfi" | "short_pct" | "week52"
-  | "margin" | "de" | "exp_ratio" | "analyst" | "analyst_count" | "target";
+  | "margin" | "de" | "analyst" | "analyst_count" | "target";
 
 type ColKey = SortKey | "expand" | "actions";
 
 const DEFAULT_WIDTHS: Record<ColKey, number> = {
   expand: 28, ticker: 150, price: 88, market_cap: 88, score: 98, moat: 72,
   pe: 60, rev_grw: 72, rsi: 52, mfi: 52, short_pct: 68, week52: 68,
-  margin: 68, de: 56, exp_ratio: 80, analyst: 88, analyst_count: 58,
+  margin: 68, de: 56, analyst: 88, analyst_count: 58,
   target: 62, actions: 64,
 };
 
@@ -250,7 +250,6 @@ function getVal(key: SortKey, ticker: string, row: TickerAnalysis | null): numbe
     case "week52":       return row.technical.week52_pct ?? null;
     case "margin":       return row.fundamental.profit_margin_pct ?? null;
     case "de":           return row.fundamental.debt_to_equity ?? null;
-    case "exp_ratio":    return row.etf?.expense_ratio_pct ?? null;
     case "analyst":      return row.fundamental.analyst_rating ?? null;
     case "analyst_count":return row.fundamental.analyst_count ?? null;
     case "target":       return row.fundamental.analyst_upside_pct ?? null;
@@ -270,7 +269,10 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const [colWidths, setColWidths] = useState<Record<ColKey, number>>({ ...DEFAULT_WIDTHS });
   const resizingRef = useRef<{ colKey: ColKey; startX: number; startWidth: number } | null>(null);
-  const hasEtf = rows.some((r) => r?.etf != null);
+  const stockTickers = tickers.filter((t) => {
+    const row = rows.find((r) => r?.ticker === t);
+    return row == null || row.etf == null;
+  });
 
   const startResize = useCallback((colKey: ColKey, e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -316,7 +318,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     else { setSortKey(key); setSortDir("asc"); }
   };
 
-  const sortedTickers = [...tickers].sort((a, b) => {
+  const sortedTickers = [...stockTickers].sort((a, b) => {
     if (!sortKey) return 0;
     const rowA = rows.find((r) => r?.ticker === a) ?? null;
     const rowB = rows.find((r) => r?.ticker === b) ?? null;
@@ -353,15 +355,17 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
     );
   };
 
-  if (tickers.length === 0) {
+  if (stockTickers.length === 0) {
     return (
       <div className="text-center py-20 text-slate-400 text-sm">
-        Add tickers above to get started.
+        {tickers.length === 0
+          ? "Add tickers above to get started."
+          : "No stocks in your watchlist — all tickers are ETFs."}
       </div>
     );
   }
 
-  const totalCols = 16 + (hasEtf ? 1 : 0);
+  const totalCols = 15;
 
   return (
     <>
@@ -382,7 +386,6 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
           <col style={{ width: colWidths.week52 }} />
           <col style={{ width: colWidths.margin }} />
           <col style={{ width: colWidths.de }} />
-          {hasEtf && <col style={{ width: colWidths.exp_ratio }} />}
           <col style={{ width: colWidths.analyst }} />
           <col style={{ width: colWidths.analyst_count }} />
           <col style={{ width: colWidths.target }} />
@@ -422,8 +425,6 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
               title="Net profit margin (net income / revenue).&#10;> 20% strong · 10–20% good · 0–10% fair · negative weak" />
             <Th label="D/E" colKey="de"
               title="Debt-to-equity ratio (total debt / shareholders' equity).&#10;Lower is generally safer.&#10;< 50 strong · 50–150 fair · 150–300 weak · > 300 poor" />
-            {hasEtf && <Th label="Exp. Ratio" colKey="exp_ratio"
-              title="Annual expense ratio — the fund's operating cost as % of assets.&#10;< 0.1% strong · 0.1–0.3% good · 0.3–0.75% fair · > 0.75% weak" />}
             <Th label="Analyst" colKey="analyst"
               title="Average analyst rating (1.0 = Strong Buy → 5.0 = Sell).&#10;Display only — does not feed the composite score." />
             <Th label="# Ana." colKey="analyst_count"
@@ -506,13 +507,6 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
                   <td className="px-4 py-3 text-right font-mono">
                     <MetricCell value={row?.fundamental.debt_to_equity} format="ratio" />
                   </td>
-                  {hasEtf && (
-                    <td className="px-4 py-3 text-right font-mono">
-                      {row?.etf?.expense_ratio_pct != null
-                        ? `${row.etf.expense_ratio_pct}%`
-                        : <span className="text-slate-300">—</span>}
-                    </td>
-                  )}
                   <td className="px-4 py-3 text-right text-xs">
                     {row ? (
                       <AnalystRatingCell
@@ -570,10 +564,7 @@ export default function WatchlistTable({ rows, tickers, loading, onRemove, onRef
       </div>
     )}
     <p className="mt-2 text-xs text-slate-400">
-      * <strong>Score</strong> = {hasEtf
-        ? "stocks: 55% Fundamental + 45% Technical · ETFs: 40% Fundamental + 35% Technical + 25% ETF-specific"
-        : "55% Fundamental + 45% Technical"
-      } · BUY ≥ 65 · HOLD 40–64 · AVOID &lt; 40 ·{" "}
+      * <strong>Score</strong> = 55% Fundamental + 45% Technical · BUY ≥ 65 · HOLD 40–64 · AVOID &lt; 40 ·{" "}
       <strong>MFI</strong> = 14-day Money Flow Index (volume-weighted RSI; &gt;80 overbought, &lt;20 oversold)
     </p>
     </>
